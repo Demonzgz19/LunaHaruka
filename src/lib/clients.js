@@ -21,36 +21,29 @@ class Client extends Events {
     async start() {
         try {
             const appState = await this.getAppstate();
-            fb({ appState }, (err, api) => {
+            const api = await fb({ appState }, {
+                listenEvents: true,
+                forceLogin: true,
+                autoReconnect: false,
+                autoMarkDelivery: false,
+                logLevel: "error"
+            });
+
+            api.listen((err, events) => {
                 if (err) {
-                    this.emit("error", new Error("Facebook API error: " + err.message));
+                    this.emit("error", new Error("Facebook API listen error: " + err.message));
                     return;
                 }
 
-                api.setOptions({
-                    listenEvents: true,
-                    forceLogin: true,
-                    autoReconnect: false,
-                    autoMarkDelivery: false,
-                    logLevel: "error"
-                });
-
-                api.listen((err, events) => {
-                    if (err) {
-                        this.emit("error", new Error("Facebook API listen error: " + err.message));
-                        return;
-                    }
-
-                    switch (events.type) {
-                        case "message":
-                        case "message_reply":
-                            this.emit("message", api, events);
-                            break;
-                    }
-                });
+                switch (events.type) {
+                    case "message":
+                    case "message_reply":
+                        this.emit("message", api, events);
+                        break;
+                }
             });
         } catch (error) {
-            this.emit("error", error);
+            this.emit("error", new Error("Facebook API error: " + err.message));
         }
     }
 }
