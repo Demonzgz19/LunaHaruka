@@ -1,0 +1,16 @@
+[
+    {
+        "name": "beta-tester",
+        "get": {
+            "yen": 10,
+            "exp": 50000
+        }
+    },
+    {
+        "name": "something",
+        "get": {
+            "yen": 10,
+            "exp": 50000
+        }
+    }
+]
