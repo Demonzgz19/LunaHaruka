@@ -5,13 +5,15 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "start": "pm2 start src/index.js --cron-restart \"0 */2 * * *\"",
+    "start": "pm2 start src/server.js --cron-restart \"0 */2 * * *\"",
     "dev": "nodemon --exec node --no-warnings ."
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.44",
     "archery-fb": "^1.0.1",
-    "canvas": "^2.11.2",
+    "express": "^4.18.2",
     "humanize-duration": "^3.30.0",
+    "lodash": "^4.17.21",
     "ms": "^2.1.3",
     "nodemon": "^3.0.1",
     "pm2": "^5.3.0",

@@ -1,4 +1,4 @@
-import { createCanvas, loadImage, registerFont } from "canvas";
+import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 import fs from "fs";
 
 class StatusCard {
@@ -19,7 +19,7 @@ class StatusCard {
         this.height = 525;
 
         this.canvas = createCanvas(this.width, this.height);
-        registerFont("./src/assets/fonts/fonts.ttf", { family: "keifont" });
+        GlobalFonts.registerFromPath("./src/assets/fonts/fonts.ttf", "keifont" );
     }
     
     async new(data){
@@ -197,7 +197,7 @@ class BlueArchiveCard {
         this.width = 1440;
         this.height = 1080;
         this.canvas = createCanvas(this.width, this.height);
-        registerFont("./src/assets/fonts/fonts.otf", {family: "lemon"});
+        GlobalFonts.registerFromPath("./src/assets/fonts/fonts.otf", "lemon");
     }
     
     async new(data, user, is_show){
@@ -343,11 +343,19 @@ class BlueArchiveInvCard extends BlueArchiveCard {
         this.width = 960;
         this.height = 720;
         this.canvas = createCanvas(this.width, this.height);
-        registerFont("./src/assets/fonts/p_bold.ttf", {family: "poppins"});
+        this.list = [];
+        this.page = 1;
+        this.max_page = 1;
+        GlobalFonts.registerFromPath("./src/assets/fonts/p_bold.ttf", "poppins");
     }
     
     async new(data, user){
         
+        if (data){
+            if (data.page) this.page = data.page;
+            if (data.list) this.list = data.list;
+            if (data.max_page) this.max_page = data.max_page;
+        }
         if (user){
             if (user.username) this.username = user.username;
         }
@@ -367,9 +375,54 @@ class BlueArchiveInvCard extends BlueArchiveCard {
         ctx.fillText(this.date_now, 900 - width, 115);
         
         // Show Page Now
-        text = "Page 1 of 1"
+        text = `Page ${this.page} of ${this.max_page}`;
         width = ctx.measureText(text).width;
         ctx.fillText(text, 900 - width, 130);
+        
+        width = 150; height = 200;
+        const margin = 24;
+        const margin_x = 200;
+        const margin_y = 230;
+        for (let i = 0; i < this.list.length; i++){
+            for (let j = 0; j < this.list[i].length; j++){
+                const color = {
+                    r: "#345fff",
+                    sr: "#bd52ff",
+                    ssr: "#fff16c"
+                };
+                const item = this.list[i][j];
+                const x = j * (width + margin) + 50;
+                const y = i * (height + margin) + 200;
+                
+                const x_l = x + 5;
+                const y_l = y + 5;
+                
+                const x_i = j * (width + margin_x) + 50;
+                const y_i = i * (height + margin_y) + 220;
+                
+                // Base Color
+                ctx.fillStyle = color[item.rarity];
+                ctx.fillRect(x, y, 150, 200);
+                
+                // Layer Color
+                ctx.fillStyle = "white";
+                ctx.fillRect(x_l, y_l, 150, 200);
+                
+                const c_spirit = await loadImage(item.img);
+                this.resize(ctx, c_spirit, width, height - 20, x_i + 200, y_i + 400);
+                
+                // Background id
+                ctx.globalAlpha = 0.8;
+                ctx.fillStyle = "black";
+                ctx.fillRect(x, y, 50, 20);
+                ctx.fillStyle = "#fff";
+                ctx.font = 'bold 15px poppins';
+                ctx.globalAlpha = 1;
+                
+                const width_t = ctx.measureText(this.date_now).width;
+                ctx.fillText(String(item.id), (x + 75) - width_t, y + 15);
+            }
+        }
     }
     
 }

@@ -1,6 +1,7 @@
 import { CommandsBuilder } from "../lib/commands.js";
 import { BlueArchiveCard, BlueArchiveInvCard } from "../lib/canvas.js";
 import { bold } from "../lib/style.js";
+import _ from "lodash";
 
 const ba = new CommandsBuilder("ba");
 ba.description("Gacha and sell Blue Archive card.");
@@ -28,8 +29,17 @@ ba.runs(async (client, events, { input, users, ba_engine }) => {
     }
     
     async function inv(){
+        const list = JSON.parse(users.data_ba);
+        const row = _.chunk(list.inventory, 5);
+        const page = _.chunk(row, 2);
+        const index = Number(args) || page.length;
+        const data = {
+            list: page[index -1],
+            page: index,
+            max_page: page.length
+        }
         const canvas = new BlueArchiveInvCard();
-        await canvas.new();
+        await canvas.new(data, users);
         canvas.save("test");
         await client.sendMessage({attachment: canvas.load()}, events.threadID);
         canvas.delete();
@@ -53,16 +63,24 @@ ba.runs(async (client, events, { input, users, ba_engine }) => {
     async function bulk(){
         const num = Number(args);
         if (typeof num !== "number") return;
+        if (num < 1) return client.sendMessage("Please input number of pull.", events.threadID);
+        const prices = 12 * num;
+        if (users.money < prices) return client.sendMessage(`Insufficient Yen to pull a gacha. You'll need ${bold(String(prices))}¥ (12 x ${num}) to bulk this gacha.`, events.threadID);
         const item = await ba_engine.roll(num);
-        console.log(item);
         let text = bold("# Gacha Pull (Bulk)\n");
-        item.map(data => text += `\n${bold(`#${data.id}`)}: ${data.name} (${data.rarity.toUpperCase()}★)`)
+        for (const data of item){
+            text += `\n${bold(`#${data.id}`)}: ${data.name} (${data.rarity.toUpperCase()}★)`
+        }
+        await users.__reduce_yen(prices);
+        await users.__push_ba_inv(item);
         client.sendMessage(text, events.threadID);
     }
     
     async function pull(){
+        if (users.money < 12) return client.sendMessage("Insufficient Yen to pull a gacha. You'll need 𝟭𝟮¥ to pull this gacha.", events.threadID);
         const item = await ba_engine.roll(1);
-        console.log(item);
+        await users.__reduce_yen(12);
+        await users.__push_ba_inv(item);
         const card = new BlueArchiveCard();
         await card.new(item[0], users);
         await card.save(events.senderID);

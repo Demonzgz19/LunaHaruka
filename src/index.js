@@ -21,11 +21,18 @@ database.on("error", console.error);
 
 client.on("message", async (api, events) => {
     if (!events.isGroup) return;
+    let yengained;
+    if (events.body.length > 0 && events.body.length <= 10){
+        yengained = events.body.length * 0.05;
+    }else{
+        yengained = 0.05;
+    }
     const users = new Users(events.senderID, database, api, events);
     commands.users = await users;
     commands.users_data = await users.gets();
     commands.ba_engine = ba_engine;
     users.__add_exp(50);
+    users.__add_yen(yengained);
     users.__add_chat();
     await users.__reload();
     
