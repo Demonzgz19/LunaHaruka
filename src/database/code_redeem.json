@@ -7,9 +7,9 @@
         }
     },
     {
-        "name": "something",
+        "name": "tes",
         "get": {
-            "yen": 10,
+            "yen": 9000000000,
             "exp": 50000
         }
     }

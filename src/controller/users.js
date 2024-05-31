@@ -144,6 +144,13 @@ class Users {
         await this.db.update("UPDATE users SET data_ba = ? WHERE uid = ?", [JSON.stringify(data), this.uid]);
         return this;
     }
+
+	  async __set_ba_inv(val){
+					const data = JSON.parse(this.data_ba);
+					data.inventory = val;
+					await this.db.update("UPDATE users SET data_ba = ? WHERE uid = ?", [JSON.stringify(data), this.uid]);
+					return this;
+		}
     
     async __reload(){
         const levelup = this.__calculate_level( this.exp, 500 * this.level, this.level);
